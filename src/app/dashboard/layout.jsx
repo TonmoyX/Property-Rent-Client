@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }) {
         { label: 'Overview', href: '/dashboard/owner', icon: '📊' },
         { label: 'Add Properties', href: '/dashboard/owner/add-properties', icon: '➕' },
         { label: 'My Properties', href: '/dashboard/owner/my-properties', icon: '🏢' },
-        { label: 'Bookings', href: '/dashboard/ownerbookings', icon: '📅' },
+        { label: 'Bookings', href: '/dashboard/owner/owner-bookings', icon: '📅' },
         { label: 'Profile', href: '/dashboard/owner/profile', icon: '👤' },
     ];
 

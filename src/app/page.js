@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import BannerSection from "@/component/BannerSection";
 import CustomerReviews from "@/component/CustomerReview";
 import PopulerCity from "@/component/PopulerCity";
@@ -7,13 +8,15 @@ import WhyChooseSection from "@/component/WhyChooseSection";
 export default function Home() {
   return (
     <div>
-    <BannerSection></BannerSection>
-    <div className="my-20">
-      <WhyChooseSection></WhyChooseSection>
-      <PopulerCity></PopulerCity>
-      <CustomerReviews></CustomerReviews>
-      <RentalStatistics></RentalStatistics>
-    </div>
+      <Suspense fallback={<div className="h-96 bg-gray-100" />}>
+        <BannerSection />
+      </Suspense>
+      <div className="my-20">
+        <WhyChooseSection></WhyChooseSection>
+        <PopulerCity></PopulerCity>
+        <CustomerReviews></CustomerReviews>
+        <RentalStatistics></RentalStatistics>
+      </div>
     </div>
   );
 }

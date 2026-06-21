@@ -25,7 +25,11 @@ export default function AddPropertiesPage() {
 
   // Array states for interactive UI controls
   const [amenities, setAmenities] = useState([]);
-  const [images, setImages] = useState([]);
+  
+  // Track BOTH raw file objects (for uploading) and previews (for the UI)
+  const [imageFiles, setImageFiles] = useState([]); 
+  const [imagePreviews, setImagePreviews] = useState([]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Available options for selection mappings
@@ -46,42 +50,80 @@ export default function AddPropertiesPage() {
     );
   };
 
-  // Native multi-image select and matching client blob data strings
+  // Handle local multi-image select and save file objects alongside previews
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const newImages = files.map(file => URL.createObjectURL(file));
-    setImages(prev => [...prev, ...newImages]);
+    if (!files.length) return;
+
+    // Save actual raw files for later API processing
+    setImageFiles(prev => [...prev, ...files]);
+
+    // Generate local URLs strictly for rendering previews in browser
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
+  // Synchronously remove image pointers from state matrices
   const removeImage = (indexToRemove) => {
-    setImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    setImageFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    
+    // Revoke object URL memory before filtering out preview
+    URL.revokeObjectURL(imagePreviews[indexToRemove]);
+    setImagePreviews(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Compiled data payload ready for API endpoints
-    const propertyPayload = {
-      ...formData,
-      rent: parseFloat(formData.rent) || 0,
-      bedrooms: parseInt(formData.bedrooms) || 0,
-      bathrooms: parseInt(formData.bathrooms) || 0,
-      propertySize: parseInt(formData.propertySize) || 0,
-      amenities,
-      images, // Remember: local blobs won't work long-term on a real remote database
-      status: 'Pending',
-      owner: {
-        id: user?.id,
-        name: user?.name,
-        email: user?.email,
-      }
-    };
+    const IMAGE_API_KEY = process.env.NEXT_PUBLIC_IMAGE_UPLOAD_API || '';
+    if (!IMAGE_API_KEY && imageFiles.length > 0) {
+      toast.error("ImgBB API key is missing. Please check your environmental configurations.");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      // 1. Adjusted to use NEXT_PUBLIC_ prefix so client bundle registers environment variable
+      const uploadedImageUrls = [];
+
+      // 1. Process local image file instances via sequential ImgBB uploads
+      for (const file of imageFiles) {
+        const imgbbFormData = new FormData();
+        imgbbFormData.append('image', file);
+
+        const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMAGE_API_KEY}`, {
+          method: 'POST',
+          body: imgbbFormData,
+        });
+
+        if (!imgbbResponse.ok) {
+          throw new Error('Failed to upload one or more media files to ImgBB cloud storage.');
+        }
+
+        const imgbbData = await imgbbResponse.json();
+        if (imgbbData.success) {
+          uploadedImageUrls.push(imgbbData.data.url); // Use remote secure production link
+        }
+      }
+
+      // 2. Compiled data payload ready for database ingestion
+      const propertyPayload = {
+        ...formData,
+        rent: parseFloat(formData.rent) || 0,
+        bedrooms: parseInt(formData.bedrooms) || 0,
+        bathrooms: parseInt(formData.bathrooms) || 0,
+        propertySize: parseInt(formData.propertySize) || 0,
+        amenities,
+        images: uploadedImageUrls, // Verified web-accessible production URLs
+        status: 'Pending',
+        owner: {
+          id: user?.id,
+          name: user?.name,
+          email: user?.email,
+        }
+      };
+
       const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || '';
-      
       const response = await fetch(`${baseUri}/addProperties`, {
         method: 'POST',
         headers: {
@@ -90,7 +132,7 @@ export default function AddPropertiesPage() {
         body: JSON.stringify(propertyPayload),
       });
 
-      // 2. Validate that server returned JSON syntax to prevent client layout parsing crashes
+      // Validate JSON formatting structures
       const contentType = response.headers.get("content-type");
       let data = {};
       
@@ -108,17 +150,18 @@ export default function AddPropertiesPage() {
 
       toast.success('Property listed successfully! Set to Pending review state.');
       
-      // Clear all operational parameters upon structural compilation success
+      // Clear all state values upon compilation success
       setFormData({
         title: '', description: '', location: '', propertyType: 'Apartment',
         rent: '', rentType: 'Monthly', bedrooms: '', bathrooms: '', propertySize: '', extraFeatures: ''
       });
       setAmenities([]);
-      setImages([]);
+      setImageFiles([]);
+      setImagePreviews([]);
 
     } catch (error) {
       console.error("Submission Error Details:", error);
-      alert(`Submission failed: ${error.message}`);
+      toast.error(`Submission failed: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -291,14 +334,14 @@ export default function AddPropertiesPage() {
             </div>
 
             {/* Dynamically Populated Image Grid Previews */}
-            {images.length > 0 && (
+            {imagePreviews.length > 0 && (
               <div className="grid grid-cols-3 gap-2 pt-2">
-                {images.map((src, index) => (
+                {imagePreviews.map((src, index) => (
                   <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-gray-100 group shadow-sm">
                     <img src={src} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       type="button" onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-black/70 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-black/70 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                     >
                       ✕
                     </button>

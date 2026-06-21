@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-    Pagination,
-    Spinner,
-    Chip,
+import { 
+    Pagination, 
+    Spinner, 
+    Chip, 
     Button,
     Card,
     Avatar,
@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'react-toastify';
+import EditModal from '@/component/EditModal';
 
 export default function OwnerPropertiesPage() {
     const { data: session, isPending: sessionPending } = authClient.useSession();
@@ -26,6 +27,8 @@ export default function OwnerPropertiesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [apiError, setApiError] = useState(false);
     const [page, setPage] = useState(1);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedProperty, setSelectedProperty] = useState(null);
     const rowsPerPage = 10;
 
     // Fetch properties data
@@ -43,12 +46,12 @@ export default function OwnerPropertiesPage() {
             try {
                 const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || '';
                 const response = await fetch(`${baseUri}/getPropertiesData`);
-
+                
                 if (!response.ok) throw new Error(`HTTP Error Status: ${response.status}`);
-
+                
                 const allData = await response.json();
                 const rawProperties = Array.isArray(allData) ? allData : allData.properties || [];
-
+                
                 // Filter properties by current owner
                 const ownerFiltered = rawProperties.filter(p => {
                     return (
@@ -91,24 +94,50 @@ export default function OwnerPropertiesPage() {
         return 'primary';
     };
 
-    // Handle delete property
+    // FIXED: Handle delete property by hitting the exact matching backend route
     const handleDelete = async (propertyId) => {
-        if (!confirm('Are you sure you want to delete this property?')) return;
-
+        if (!confirm('Are you sure you want to delete this property permanently?')) return;
+        
         try {
             const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || '';
-            const response = await fetch(`${baseUri}/deleteProperty/${propertyId}`, {
+            // Corrected endpoint from '/deleteProperty/:id' to '/getPropertiesData/:id'
+            const response = await fetch(`${baseUri}/getPropertiesData/${propertyId}`, {
                 method: 'DELETE'
             });
 
-            if (!response.ok) throw new Error('Failed to delete property');
-
-            setProperties(properties.filter(p => p._id !== propertyId));
-            toast.success('Property deleted successfully');
+            if (!response.ok) throw new Error('Failed to complete delete request');
+            
+            const data = await response.json();
+            
+            if (data.deletedCount > 0) {
+                setProperties(properties.filter(p => p._id !== propertyId));
+                toast.success('Property deleted successfully!');
+            } else {
+                toast.error('Property not found or already deleted.');
+            }
         } catch (error) {
-            console.error("Error deleting property:", error);
-            toast.error('Failed to delete property');
+            console.error("Error executing backend delete:", error);
+            toast.error('Failed to complete delete request');
         }
+    };
+
+    // Handle edit modal open
+    const handleOpenEditModal = (property) => {
+        setSelectedProperty(property);
+        setIsEditModalOpen(true);
+    };
+
+    // Handle edit modal close
+    const handleCloseEditModal = () => {
+        setIsEditModalOpen(false);
+        setSelectedProperty(null);
+    };
+
+    // Handle property update
+    const handleUpdateProperty = (propertyId, updatedData) => {
+        setProperties(properties.map(p => 
+            p._id === propertyId ? { ...p, ...updatedData } : p
+        ));
     };
 
     // Loading state
@@ -128,9 +157,10 @@ export default function OwnerPropertiesPage() {
                     <div className="text-5xl">🔐</div>
                     <h2 className="text-xl font-bold text-black">Authentication Required</h2>
                     <p className="text-gray-500 text-sm">Please sign in to view your properties.</p>
-                    <Button as={Link} href="/authentication/login" className="w-full bg-black text-white font-medium rounded-xl h-11">
+                    <Link href="/authentication/login">
+                    <Button className="w-full bg-black text-white font-medium rounded-xl h-11">
                         Go to Login
-                    </Button>
+                    </Button></Link>
                 </Card>
             </div>
         );
@@ -139,7 +169,7 @@ export default function OwnerPropertiesPage() {
     return (
         <div className="min-h-screen bg-gray-50/50 p-4 md:p-8 text-black">
             {/* Header Section */}
-            <motion.div
+            <motion.div 
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
@@ -151,7 +181,7 @@ export default function OwnerPropertiesPage() {
                         Manage your rental portfolio. Total: <span className="font-semibold text-black">{properties.length}</span> properties
                     </p>
                 </div>
-               <Link href="/dashboard/owner/add-properties"> <Button
+                <Link href="/dashboard/owner/add-properties"><Button  
                     className="bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl h-11 px-6 shadow-sm transition-all"
                 >
                     + Add New Property
@@ -160,12 +190,12 @@ export default function OwnerPropertiesPage() {
 
             {/* Error Message */}
             {apiError && (
-                <motion.div
+                <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl text-sm"
                 >
-                    <span className="font-bold">⚠️ Connection Error:</span> Unable to fetch properties. Please ensure your backend server is running.
+                    <span className="font-bold">⚠️ Connection Error:</span> Unable to fetch properties.
                 </motion.div>
             )}
 
@@ -202,13 +232,13 @@ export default function OwnerPropertiesPage() {
                                         <tr key={item._id} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <Avatar
-                                                        name={(item.title || item.name || 'P')[0]}
+                                                    {/* <Avatar 
+                                                        name={(item.title || item.name || 'P')[0]} 
                                                         className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-semibold rounded-lg w-10 h-10"
-                                                    />
+                                                    /> */}
                                                     <div className="max-w-[250px]">
-                                                        <p className="text-sm font-semibold text-gray-900">{item.title || item.name || 'Untitled'}</p>
-                                                        <p className="text-xs text-gray-400">{item._id?.substring(0, 12)}...</p>
+                                                        <p className="text-xl font-bold text-gray-900">{item.title || item.name || 'Untitled'}</p>
+                                                        {/* <p className="text-xs text-gray-400">{item._id?.substring(0, 12)}...</p> */}
                                                     </div>
                                                 </div>
                                             </td>
@@ -220,12 +250,12 @@ export default function OwnerPropertiesPage() {
                                             <td className="px-6 py-4">
                                                 <div className="text-sm font-bold text-gray-900">
                                                     ${Number(item.rent || item.price || 0).toLocaleString()}
-                                                    <span className="text-xs text-gray-400 font-normal ml-1">/month</span>
+                                                    <span className="text-xs text-gray-400 font-normal ml-1">{item.rentType}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <Chip
-                                                    size="sm"
+                                                <Chip 
+                                                    size="sm" 
                                                     variant="flat"
                                                     className="capitalize"
                                                 >
@@ -233,9 +263,9 @@ export default function OwnerPropertiesPage() {
                                                 </Chip>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <Chip
-                                                    size="sm"
-                                                    variant="flat"
+                                                <Chip 
+                                                    size="sm" 
+                                                    variant="flat" 
                                                     color={getStatusColor(item.status)}
                                                     className="capitalize font-semibold"
                                                 >
@@ -244,39 +274,41 @@ export default function OwnerPropertiesPage() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex gap-2 justify-center items-center">
-                                                    <Button
-                                                        as={Link}
-                                                        href={`/allproperties/${item._id}`}
-                                                        size="sm"
+                                                   <Link href={`/allproperties/${item._id}`}> <Button
+                                                        size="sm" 
                                                         variant="light"
                                                         className="text-blue-600 hover:text-blue-700 font-medium"
                                                     >
                                                         View
-                                                    </Button>
-
+                                                    </Button></Link>
+                                                    
                                                     <Dropdown>
-                                                        {/* FIXED: Replaced nested Button with an inline interactive styled span tag */}
                                                         <DropdownTrigger>
-                                                            <span
+                                                            <span 
                                                                 role="button"
                                                                 tabIndex={0}
                                                                 className="text-gray-600 text-lg px-2 py-1 cursor-pointer hover:bg-gray-100 rounded-md transition-colors select-none"
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        e.target.click();
+                                                                    }
+                                                                }}
                                                             >
                                                                 ⋮
                                                             </span>
                                                         </DropdownTrigger>
                                                         <DropdownMenu aria-label="Property actions listing">
-                                                            <DropdownItem
+                                                            <DropdownItem 
                                                                 key="edit"
-                                                                as={Link}
-                                                                href={`/dashboard/owner/my-properties/${item._id}/edit`}
+                                                                onPress={() => handleOpenEditModal(item)}
                                                                 className="text-blue-600"
                                                             >
                                                                 ✏️ Edit
                                                             </DropdownItem>
-                                                            <DropdownItem
+                                                            <DropdownItem 
                                                                 key="delete"
-                                                                onClick={() => handleDelete(item._id)}
+                                                                onPress={() => handleDelete(item._id)}
                                                                 className="text-red-600 font-semibold"
                                                             >
                                                                 🗑️ Delete
@@ -291,7 +323,7 @@ export default function OwnerPropertiesPage() {
                             </table>
                         </div>
                     )}
-
+                    
                     {/* Pagination */}
                     {!isLoading && properties.length > 0 && pagesCount > 1 && (
                         <div className="flex w-full justify-center py-4 border-t border-gray-100">
@@ -324,13 +356,23 @@ export default function OwnerPropertiesPage() {
                         <div className="text-6xl">🏠</div>
                         <h3 className="text-2xl font-bold text-gray-900">No Properties Yet</h3>
                         <p className="text-gray-500">Start managing your rental properties by adding your first listing.</p>
-                        <Link href="/dashboard/owner/add-properties"> <Button
+                        <Link href="/dashboard/owner/add-properties"><Button 
                             className="bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl h-11 px-8"
                         >
                             Add Your First Property
                         </Button></Link>
                     </div>
                 </motion.div>
+            )}
+
+            {/* Edit Property Modal */}
+            {selectedProperty && (
+                <EditModal
+                    isOpen={isEditModalOpen}
+                    onClose={handleCloseEditModal}
+                    property={selectedProperty}
+                    onUpdate={handleUpdateProperty}
+                />
             )}
         </div>
     );

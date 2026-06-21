@@ -52,7 +52,7 @@ export default function PropertyDetailsPage() {
         text: newComment
       }
     ]);
-    setNewComment("");
+    NewComment("");
   };
 
   if (isLoading) {
@@ -97,10 +97,7 @@ export default function PropertyDetailsPage() {
           </Chip>
         </div>
 
-        {/* CSS Grid Architecture:
-          On mobile: Grid matches standard DOM rendering layout sequence perfectly.
-          On desktop (`lg`): Custom grid tracking places elements precisely into columns.
-        */}
+        {/* CSS Grid Architecture */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start w-full">
           
           {/* =========================================================
@@ -111,7 +108,7 @@ export default function PropertyDetailsPage() {
               <div className="flex flex-col md:flex-row gap-8 items-start">
                 
                 {/* Left Side Fixed Width Image Section (Exactly 303px on desktop) */}
-                <div className="w-full md:w-[303px] h-[240px] md:h-[320px] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner relative shrink-0">
+                <div className="w-full md:w-[303px] h-[240px] md:h-[250px] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner relative shrink-0">
                   {property.images && property.images.length > 0 ? (
                     <Image 
                       src={property.images[0]} 
@@ -120,6 +117,7 @@ export default function PropertyDetailsPage() {
                       sizes="(max-width: 768px) 100vw, 303px"
                       className="object-cover"
                       priority
+                      unoptimized
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 font-bold bg-gray-50 p-4 text-center text-xs">
@@ -172,12 +170,11 @@ export default function PropertyDetailsPage() {
           </div>
 
           {/* =========================================================
-              SECTION 2: BOOK NOW WIDGET (Intercepts Mobile Middle Row Flow)
+              SECTION 2: BOOK NOW WIDGET
               ========================================================= */}
           <div className="lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:sticky lg:top-6 w-full">
             <Card className="bg-white border border-gray-100 shadow-xl rounded-2xl p-6 space-y-6">
               
-              {/* Header Pricing Information Structure Container */}
               <div className="border-b border-gray-100 pb-4">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Configuration Lease Matrix</span>
                 <div className="text-3xl font-black text-gray-900 tracking-tight">
@@ -186,24 +183,20 @@ export default function PropertyDetailsPage() {
                 </div>
               </div>
 
-              {/* Nested Split Operational Price Increments Card Layout */}
               <div className="space-y-3">
                 <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Pricing Breakdown Vectors</h4>
                 
                 <div className="grid grid-cols-1 gap-2.5">
-                  {/* Daily Metric Entry */}
                   <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-gray-200/60 rounded-xl text-xs">
                     <span className="text-gray-500 font-bold">☀️ Daily Valuation Scale</span>
                     <span className="font-black text-gray-900">${rentDaily.toLocaleString()} <span className="text-[10px] text-gray-400 font-medium">/ day</span></span>
                   </div>
 
-                  {/* Weekly Metric Entry */}
                   <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-gray-200/60 rounded-xl text-xs">
                     <span className="text-gray-500 font-bold">⏱️ Weekly Cluster Cycle</span>
                     <span className="font-black text-gray-900">${rentWeekly.toLocaleString()} <span className="text-[10px] text-gray-400 font-medium">/ wk</span></span>
                   </div>
 
-                  {/* Monthly Metric Entry */}
                   <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-gray-200/60 rounded-xl text-xs">
                     <span className="text-gray-500 font-bold">🗓️ Monthly Full Horizon</span>
                     <span className="font-black text-gray-900">${rentMonthly.toLocaleString()} <span className="text-[10px] text-gray-400 font-medium">/ mo</span></span>
@@ -211,7 +204,6 @@ export default function PropertyDetailsPage() {
                 </div>
               </div>
 
-              {/* Action Intent Conversion Interface Trigger */}
               <div className="space-y-2.5 pt-2">
                 <Button 
                   className="w-full text-xs font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 rounded-xl py-5 shadow-md shadow-orange-500/10 transition-all duration-200"
@@ -230,14 +222,13 @@ export default function PropertyDetailsPage() {
           {/* =========================================================
               SECTION 3: INTERACTIVE FEEDBACK & COMMENTS MODULE
               ========================================================= */}
-          <div className="lg:col-span-2 lg:row-start-2">
+          <div className="lg:col-span-2 lg:row-start-2 md:mt-[-10] lg:mt-[-90]">
             <Card className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 md:p-8 space-y-6">
               <div>
                 <h3 className="text-base font-black text-gray-900 uppercase tracking-wider">💬 Index Registry Reviews ({comments.length})</h3>
                 <p className="text-xs font-medium text-gray-400">Public verified tenant ledger logs and validation commentary strings.</p>
               </div>
 
-              {/* Input Form Using Recorrected Native Standard Textarea Element */}
               <form onSubmit={handleAddComment} className="space-y-3">
                 <div className="flex flex-col gap-1.5 w-full">
                   <textarea
@@ -259,7 +250,6 @@ export default function PropertyDetailsPage() {
                 </div>
               </form>
 
-              {/* Comments Output Array Stream Rendering Container */}
               <div className="space-y-4 pt-2 border-t border-gray-100">
                 {comments.map((comment) => (
                   <div key={comment.id} className="flex gap-3 items-start text-xs border-b border-gray-50 pb-4 last:border-0 last:pb-0">
@@ -282,9 +272,7 @@ export default function PropertyDetailsPage() {
           </div>
 
         </div>
-
       </div>
-
     </div>
   );
 }

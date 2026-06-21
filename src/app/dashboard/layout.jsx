@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }) {
                             variant="light"
                             className="w-full font-bold text-xs text-gray-500 hover:text-gray-900 border border-gray-200 bg-white h-9 rounded-xl shadow-sm justify-start px-3 transition-colors"
                         >
-                            <Link href='/'>
+                            <Link href='/' >
                                 ⬅ Back to Home
                             </Link>
                         </Button>

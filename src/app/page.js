@@ -4,6 +4,7 @@ import CustomerReviews from "@/component/CustomerReview";
 import PopulerCity from "@/component/PopulerCity";
 import RentalStatistics from "@/component/RentalStatistics";
 import WhyChooseSection from "@/component/WhyChooseSection";
+import RecentProp from '@/component/RecentProp';
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
         <BannerSection />
       </Suspense>
       <div className="my-20">
+        <RecentProp></RecentProp>
         <WhyChooseSection></WhyChooseSection>
         <PopulerCity></PopulerCity>
         <CustomerReviews></CustomerReviews>

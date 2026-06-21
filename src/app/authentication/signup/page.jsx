@@ -23,6 +23,7 @@ const SignUpPage = () => {
     
     const [formData, setFormData] = useState({
         fullName: '',
+        image: '',
         email: '',
         password: ''
     });
@@ -32,6 +33,7 @@ const SignUpPage = () => {
         
         const { data, error } = await authClient.signUp.email({
             name: formData.fullName,
+            image: formData.image,
             email: formData.email,
             password: formData.password,
             role: role,        
@@ -43,7 +45,7 @@ const SignUpPage = () => {
         }
 
         if (data?.user) {
-            router.push('/authentication/login');
+            router.push('/');
         }
     };
 
@@ -128,6 +130,23 @@ const SignUpPage = () => {
                                         placeholder="John Doe"
                                         value={formData.fullName}
                                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                        className="w-full h-full bg-transparent focus:outline-none text-gray-900 text-sm font-medium placeholder-gray-400"
+                                    />
+                                </InputGroup>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                                    Image URL
+                                </label>
+                                <InputGroup className="bg-gray-50 border border-gray-200 h-11 rounded-xl px-3 w-full flex items-center focus-within:border-orange-500 focus-within:bg-white transition-all">
+                                    <InputGroup.Input
+                                        type="text"
+                                        required
+                                        name="image"
+                                        placeholder="John Doe"
+                                        value={formData.image}
+                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                                         className="w-full h-full bg-transparent focus:outline-none text-gray-900 text-sm font-medium placeholder-gray-400"
                                     />
                                 </InputGroup>

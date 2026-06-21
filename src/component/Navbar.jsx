@@ -86,7 +86,7 @@ const Navbar = () => {
             <NavLink href="/services">Services</NavLink>
           </li>
           {user && <li>
-            <NavLink href="/dashboard">Dashboard</NavLink>
+            <NavLink href={`/dashboard/${user.role}`}>Dashboard</NavLink>
           </li>
           }
         </ul>
@@ -121,7 +121,7 @@ const Navbar = () => {
             </li>
             {
             user && <li>
-              <NavLink href="/dashboard">
+              <NavLink href={`/dashboard/${user.role}`}>
                 Dashboard
               </NavLink>
             </li>

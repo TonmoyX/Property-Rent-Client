@@ -14,24 +14,32 @@ export default function DashboardLayout({ children }) {
     const { data: session, isPending } = authClient.useSession();
     const user = session?.user;
 
-    // 1. Sidebar Navigation Arrays mapped per user role
+    // Sidebar Navigation Arrays mapped per user role
     const ownerMenu = [
-        { label: 'Overview', href: '/dashboard', icon: '📊' },
-        { label: 'Add Properties', href: '/dashboard/add-properties', icon: '➕' },
-        { label: 'My Properties', href: '/dashboard/my-properties', icon: '🏢' },
-        { label: 'Bookings', href: '/dashboard/bookings', icon: '📅' },
-        { label: 'Profile', href: '/dashboard/profile', icon: '👤' },
+        { label: 'Overview', href: '/dashboard/owner', icon: '📊' },
+        { label: 'Add Properties', href: '/dashboard/owner/add-properties', icon: '➕' },
+        { label: 'My Properties', href: '/dashboard/owner/my-properties', icon: '🏢' },
+        { label: 'Bookings', href: '/dashboard/ownerbookings', icon: '📅' },
+        { label: 'Profile', href: '/dashboard/owner/profile', icon: '👤' },
     ];
 
     const tenantMenu = [
-        { label: 'Overview', href: '/dashboard', icon: '📊' },
-        { label: 'My Rent History', href: '/dashboard/rent-history', icon: '🔑' },
-        { label: 'Saved Properties', href: '/dashboard/saved', icon: '❤️' },
-        { label: 'My Bookings', href: '/dashboard/my-bookings', icon: '📅' },
-        { label: 'Profile', href: '/dashboard/profile', icon: '👤' },
+        { label: 'Overview', href: '/dashboard/tenant', icon: '📊' },
+        { label: 'Saved Properties', href: '/dashboard/tenant/saved', icon: '❤️' },
+        { label: 'My Bookings', href: '/dashboard/tenant/my-bookings', icon: '📅' },
+        { label: 'Profile', href: '/dashboard/tenant/profile', icon: '👤' },
     ];
 
-    // 2. Loading State: Prevents unrendered "undefined" string crashes during fetch
+    // Admin Navigation Array
+    const adminMenu = [
+        { label: 'Overview', href: '/dashboard/admin', icon: '📊' },
+        { label: 'Users', href: '/dashboard/admin/users', icon: '👥' },
+        { label: 'Properties', href: '/dashboard/admin/properties', icon: '🏢' },
+        { label: 'Bookings', href: '/dashboard/admin/bookings', icon: '📅' },
+        { label: 'Profile', href: '/dashboard/admin/profile', icon: '👤' },
+    ];
+
+    // Loading State: Prevents unrendered "undefined" string crashes during fetch
     if (isPending) {
         return (
             <div className="fixed inset-0 z-50 bg-gray-50 flex items-center justify-center">
@@ -40,7 +48,7 @@ export default function DashboardLayout({ children }) {
         );
     }
 
-    // 3. Fallback Context: If no user is logged in, show an unauthorized screen or redirect
+    // Fallback Context: If no user is logged in, show an unauthorized screen or redirect
     if (!user) {
         return (
             <div className="fixed inset-0 z-50 bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
@@ -53,8 +61,14 @@ export default function DashboardLayout({ children }) {
         );
     }
 
-    // Choose the menu structure based on the logged-in user's role
-    const currentMenu = user.role === 'owner' ? ownerMenu : tenantMenu;
+    // Determine menu selection dynamically based on role type
+    const getMenuByRole = () => {
+        if (user.role === 'admin') return adminMenu;
+        if (user.role === 'owner') return ownerMenu;
+        return tenantMenu;
+    };
+
+    const currentMenu = getMenuByRole();
 
     return (
         <div className="fixed inset-0 z-50 min-h-screen max-h-screen w-screen bg-gray-50 flex flex-col md:flex-row antialiased select-none overflow-hidden">
@@ -66,20 +80,20 @@ export default function DashboardLayout({ children }) {
                         <div>
                             <h2 className="text-xl bg-gradient-to-r from-[#ef8e38] to-[#108dc7] bg-clip-text text-transparent font-bold tracking-tight">
                                 PropRent
-                                <span className="text-sm font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded-md ml-5 align-middle border border-orange-100/50">
+                                <span className="text-xs font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded-md ml-5 align-middle border border-orange-100/50">
                                     {user.role || 'User'}
                                 </span>
                             </h2>
                         </div>
 
-                        <Button
-                            variant="light"
-                            className="w-full font-bold text-xs text-gray-500 hover:text-gray-900 border border-gray-200 bg-white h-9 rounded-xl shadow-sm justify-start px-3 transition-colors"
-                        >
-                            <Link href='/'>
+                        <Link href='/'>  
+                            <Button
+                                variant="light"
+                                className="w-full font-bold text-xs text-gray-500 hover:text-gray-900 border border-gray-200 bg-white h-9 rounded-xl shadow-sm justify-start px-3 transition-colors"
+                            >
                                 ⬅ Back to Home
-                            </Link>
-                        </Button>
+                            </Button>
+                        </Link>
                     </div>
 
                     {/* Dynamic Navigation Links based on active Role */}
@@ -90,8 +104,8 @@ export default function DashboardLayout({ children }) {
                                 <Link key={item.href} href={item.href} className="block relative group">
                                     <div
                                         className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${isActive
-                                                ? 'text-orange-600'
-                                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                                            ? 'text-orange-600'
+                                            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                                             }`}
                                     >
                                         <span>{item.icon}</span>

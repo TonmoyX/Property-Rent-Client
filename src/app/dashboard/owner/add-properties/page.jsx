@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, Button, Spinner, Chip } from "@heroui/react";
 import { motion } from "framer-motion";
 import { authClient } from '@/lib/auth-client';
+import { toast } from 'react-toastify';
 
 export default function AddPropertiesPage() {
   const { data: session, isPending } = authClient.useSession();
@@ -68,7 +69,7 @@ export default function AddPropertiesPage() {
       bathrooms: parseInt(formData.bathrooms) || 0,
       propertySize: parseInt(formData.propertySize) || 0,
       amenities,
-      images,
+      images, // Remember: local blobs won't work long-term on a real remote database
       status: 'Pending',
       owner: {
         id: user?.id,
@@ -77,12 +78,50 @@ export default function AddPropertiesPage() {
       }
     };
 
-    console.log("Submitting Property Payload:", propertyPayload);
-    
-    // Simulate API delay context
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    alert('Property listed successfully! Set to Pending review state.');
+    try {
+      // 1. Adjusted to use NEXT_PUBLIC_ prefix so client bundle registers environment variable
+      const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || '';
+      
+      const response = await fetch(`${baseUri}/addProperties`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(propertyPayload),
+      });
+
+      // 2. Validate that server returned JSON syntax to prevent client layout parsing crashes
+      const contentType = response.headers.get("content-type");
+      let data = {};
+      
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const textFallback = await response.text();
+        console.error("HTML/Text error received from endpoint target:", textFallback);
+        throw new Error(`Server configuration issue. Received HTML response status code: ${response.status}`);
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Something went wrong while listing your property.');
+      }
+
+      toast.success('Property listed successfully! Set to Pending review state.');
+      
+      // Clear all operational parameters upon structural compilation success
+      setFormData({
+        title: '', description: '', location: '', propertyType: 'Apartment',
+        rent: '', rentType: 'Monthly', bedrooms: '', bathrooms: '', propertySize: '', extraFeatures: ''
+      });
+      setAmenities([]);
+      setImages([]);
+
+    } catch (error) {
+      console.error("Submission Error Details:", error);
+      alert(`Submission failed: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isPending) {

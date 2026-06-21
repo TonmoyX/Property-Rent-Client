@@ -3,11 +3,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Button, Spinner, Chip } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { authClient } from '@/lib/auth-client';
 
 export default function AllPropertiesPage() {
   // --- CORE STATE ARCHITECTURE ---
   const [properties, setProperties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+    const userData = authClient.useSession();
+    const user =  userData?.data?.user;
 
   // Filter Engine Vectors
   const [selectedType, setSelectedType] = useState('All');
@@ -244,13 +248,20 @@ export default function AllPropertiesPage() {
 
                   {/* Bottom segment: Call to Action Button */}
                   <div className="pt-2 shrink-0">
-                    <Button
-                      as={Link}
-                      href={`/properties/${property._id || property.id}`}
+                    {
+                   user && <Link href={`/allproperties/${property._id}`}> <Button
                       className="w-full text-xs font-bold uppercase tracking-wider bg-gray-900 text-white hover:bg-orange-500 rounded-xl py-4.5 transition-all duration-200 shadow-sm flex items-center justify-center gap-2 group-hover:shadow"
                     >
                       View Details ➡️
-                    </Button>
+                    </Button></Link>
+                    }
+                      {
+                   !user && <Link href='/authentication/login'> <Button
+                      className="w-full text-xs font-bold uppercase tracking-wider bg-gray-900 text-white hover:bg-orange-500 rounded-xl py-4.5 transition-all duration-200 shadow-sm flex items-center justify-center gap-2 group-hover:shadow"
+                    >
+                      View Details ➡️
+                    </Button></Link>
+                    }
                   </div>
                 </div>
 

@@ -1,19 +1,74 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, Button, Spinner, Chip, Avatar } from "@heroui/react";
 import Link from "next/link";
 import Image from 'next/image';
+import { authClient } from '@/lib/auth-client';
 
 export default function PropertyDetailsPage() {
   const { id } = useParams();
+  const formRef = useRef(null); // Reference to programmatically clear checkout forms
   const [property, setProperty] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
   const [comments, setComments] = useState([
     { id: 1, user: "Tahsin Ahmed", avatar: "", date: "2 hours ago", text: "Incredible location! The natural light in the living room is amazing." },
     { id: 2, user: "Anika Rahman", avatar: "", date: "1 day ago", text: "Very responsive landlord. The place looks exactly like the photos." }
   ]);
   const [newComment, setNewComment] = useState("");
+
+  // User Authentication Stream
+  const userData = authClient.useSession();
+  const user = userData?.data?.user;
+
+  // Orchestrate dynamic database allocation logging prior to Stripe redirect handover
+  const bookingHandle = async (e) => {
+    e.preventDefault();
+    if (!property) return;
+
+    // Guard Clause: Prevent anonymous booking if required by your platform ecosystem
+    if (!user) {
+      alert("Authentication payload missing. Please log in before booking.");
+      return;
+    }
+    
+    setIsBookingLoading(true);
+    try {
+      // 1. Commit listing specifics alongside active user details to database ledger records
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/addBookings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          propertyId: id,
+          title: property.title,
+          rent: property.rent,
+          rentType: property.rentType,
+          location: property.location,
+          timestamp: new Date().toISOString(),
+          // Injected User Association Context:
+          userEmail: user.email,
+          userId: user.id || user._id, 
+          userName: user.name
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error("Local registry database failed allocation logging.");
+      }
+
+      // 2. Safely trigger the native checkout stream form submit rule
+      if (formRef.current) {
+        formRef.current.submit();
+      }
+    } catch (error) {
+      console.error("Booking sequence chain execution error:", error);
+      alert("Failed compiling reservation data parameters. Handshake aborted.");
+      setIsBookingLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchPropertyDetails = async () => {
@@ -42,17 +97,20 @@ export default function PropertyDetailsPage() {
     e.preventDefault();
     if (!newComment.trim()) return;
 
+    // Use current session data name for real-time validation commenting if user is logged in
+    const reviewerName = user?.name || "Current User";
+
     setComments([
       ...comments,
       {
         id: Date.now(),
-        user: "Current User",
-        avatar: "",
+        user: reviewerName,
+        avatar: user?.image || "",
         date: "Just now",
         text: newComment
       }
     ]);
-    NewComment("");
+    setNewComment(""); 
   };
 
   if (isLoading) {
@@ -83,8 +141,6 @@ export default function PropertyDetailsPage() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8 bg-gray-50 min-h-screen">
-
-      {/* Parent Content Layout Wrapper */}
       <div className="space-y-6 max-w-7xl mx-auto">
 
         {/* --- BREADCRUMB / ACTION BACK LINK --- */}
@@ -97,17 +153,15 @@ export default function PropertyDetailsPage() {
           </Chip>
         </div>
 
-        {/* CSS Grid Architecture */}
+        {/* CSS Grid Architecture Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start w-full">
 
-          {/* =========================================================
-              SECTION 1: UNIFIED PROPERTY DETAILS CARD
-              ========================================================= */}
+          {/* SECTION 1: UNIFIED PROPERTY DETAILS CARD */}
           <div className="lg:col-span-2 lg:row-start-1">
             <Card className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 md:p-8">
               <div className="flex flex-col md:flex-row gap-8 items-start">
 
-                {/* Left Side Fixed Width Image Section (Exactly 303px on desktop) */}
+                {/* Left Side Fixed Width Image Section */}
                 <div className="w-full md:w-[303px] h-[240px] md:h-[250px] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner relative shrink-0">
                   {property.images && property.images.length > 0 ? (
                     <Image
@@ -169,9 +223,7 @@ export default function PropertyDetailsPage() {
             </Card>
           </div>
 
-          {/* =========================================================
-              SECTION 2: BOOK NOW WIDGET
-              ========================================================= */}
+          {/* SECTION 2: BOOK NOW CHECKOUT ENGINE WIDGET */}
           <div className="lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:sticky lg:top-6 w-full">
             <Card className="bg-white border border-gray-100 shadow-xl rounded-2xl p-6 space-y-6">
 
@@ -185,18 +237,15 @@ export default function PropertyDetailsPage() {
 
               <div className="space-y-3">
                 <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Pricing Breakdown Vectors</h4>
-
                 <div className="grid grid-cols-1 gap-2.5">
                   <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-gray-200/60 rounded-xl text-xs">
                     <span className="text-gray-500 font-bold">☀️ Daily Valuation Scale</span>
                     <span className="font-black text-gray-900">${rentDaily.toLocaleString()} <span className="text-[10px] text-gray-400 font-medium">/ day</span></span>
                   </div>
-
                   <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-gray-200/60 rounded-xl text-xs">
                     <span className="text-gray-500 font-bold">⏱️ Weekly Cluster Cycle</span>
                     <span className="font-black text-gray-900">${rentWeekly.toLocaleString()} <span className="text-[10px] text-gray-400 font-medium">/ wk</span></span>
                   </div>
-
                   <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-gray-200/60 rounded-xl text-xs">
                     <span className="text-gray-500 font-bold">🗓️ Monthly Full Horizon</span>
                     <span className="font-black text-gray-900">${rentMonthly.toLocaleString()} <span className="text-[10px] text-gray-400 font-medium">/ mo</span></span>
@@ -204,20 +253,23 @@ export default function PropertyDetailsPage() {
                 </div>
               </div>
 
+              {/* Secure Intercept Checkout Form Node */}
               <div className="space-y-2.5 pt-2">
-                <form action="/api/checkout_sessions" method="POST">
-                  <section>
-                    <button type="submit" role="link" className="w-full text-xs font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 rounded-xl py-5 shadow-md shadow-orange-500/10 transition-all duration-200">
-                      Checkout
-                    </button>
-                  </section>
+                <form ref={formRef} action="/api/checkout_sessions" method="POST">
+                  <input type="hidden" name="propertyName" value={property.title} />
+                  <input type="hidden" name="propertyPrice" value={property.rent} />
+                  {/* Passing user context downstream to the Stripe checkout processing route */}
+                  <input type="hidden" name="userEmail" value={user?.email || ""} />
+                  
+                  <Button 
+                    type="submit"
+                    isLoading={isBookingLoading}
+                    onClick={bookingHandle}
+                    className="w-full text-xs font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 rounded-xl py-6 shadow-md shadow-orange-500/10 transition-all duration-200"
+                  >
+                    {isBookingLoading ? "Logging Parameters..." : "Book Now"}
+                  </Button>
                 </form>
-                {/* <Button 
-                  className="w-full text-xs font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 rounded-xl py-5 shadow-md shadow-orange-500/10 transition-all duration-200"
-                  onClick={() => alert(`Initializing operational booking stream pipeline for structural node: ${property.title}`)}
-                >
-                  Book Now 🚀
-                </Button> */}
                 <p className="text-[10px] font-medium text-gray-400 text-center leading-normal px-2">
                   Committing locks parameters into the platform clearing engine pool. No transactional balances deduct immediately.
                 </p>
@@ -226,10 +278,8 @@ export default function PropertyDetailsPage() {
             </Card>
           </div>
 
-          {/* =========================================================
-              SECTION 3: INTERACTIVE FEEDBACK & COMMENTS MODULE
-              ========================================================= */}
-          <div className="lg:col-span-2 lg:row-start-2 md:mt-[-10] lg:mt-[-90]">
+          {/* SECTION 3: INTERACTIVE FEEDBACK & COMMENTS MODULE */}
+          <div className="lg:col-span-2 lg:row-start-2 lg:mt-[-90]">
             <Card className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 md:p-8 space-y-6">
               <div>
                 <h3 className="text-base font-black text-gray-900 uppercase tracking-wider">💬 Index Registry Reviews ({comments.length})</h3>

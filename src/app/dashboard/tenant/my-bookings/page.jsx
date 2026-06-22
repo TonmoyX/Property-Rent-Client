@@ -42,7 +42,7 @@ const TenantBookingsPage = () => {
     // Trigger data fetching pipeline once the user session state finishes initializing
     if (!sessionPending && user) {
       fetchUserBookings();
-    } else if (!sessionPending && !user) {
+    } else if (!sessionPending && !user ) {
       setIsDataLoading(false);
     }
   }, [user, sessionPending]);

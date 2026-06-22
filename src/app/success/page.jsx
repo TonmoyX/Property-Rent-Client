@@ -69,7 +69,7 @@ export default async function Success({ searchParams }) {
           </Link>
         </div>
 
-      </Card>
+      </Card >
     </div>
   );
 }

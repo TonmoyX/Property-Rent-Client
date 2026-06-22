@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-    Pagination, 
     Spinner, 
     Chip, 
     Button,
@@ -128,6 +127,15 @@ export default function AdminPropertiesPage() {
         } finally {
             setActionSubmitting(null);
         }
+    };
+
+    // Navigation utilities
+    const handlePreviousPage = () => {
+        if (page > 1) setPage(prev => prev - 1);
+    };
+
+    const handleNextPage = () => {
+        if (page < pagesCount) setPage(prev => prev + 1);
     };
 
     // Loading state
@@ -305,22 +313,35 @@ export default function AdminPropertiesPage() {
                         </div>
                     )}
                     
-                    {/* Pagination Context Interface */}
-                    {!isLoading && properties.length > 0 && pagesCount > 1 && (
-                        <div className="flex w-full justify-center py-4 border-t border-gray-100">
-                            <Pagination
-                                isCompact
-                                showControls
-                                showShadow={false}
-                                color="warning"
-                                page={page}
-                                total={pagesCount}
-                                onChange={(newPage) => setPage(newPage)}
-                                classNames={{
-                                    cursor: "bg-orange-500 text-white font-medium rounded-lg",
-                                    item: "text-gray-600 rounded-lg hover:bg-gray-100"
-                                }}
-                            />
+                    {/* Custom Previous/Next Pagination with Subtitled Page Count */}
+                    {!isLoading && properties.length > 0 && (
+                        <div className="flex flex-col items-center justify-center py-5 border-t border-gray-100 gap-2 bg-gray-50/50">
+                            <div className="flex items-center gap-4">
+                                <Button
+                                    size="sm"
+                                    variant="flat"
+                                    color="warning"
+                                    onClick={handlePreviousPage}
+                                    disabled={page === 1}
+                                    className={`font-semibold rounded-xl px-4 ${page === 1 ? 'opacity-50 cursor-not-allowed' : 'bg-orange-100 text-orange-700'}`}
+                                >
+                                    ← Previous
+                                </Button>
+                                
+                                <Button
+                                    size="sm"
+                                    variant="solid"
+                                    color="warning"
+                                    onClick={handleNextPage}
+                                    disabled={page >= pagesCount}
+                                    className={`font-semibold rounded-xl px-4 text-white ${page >= pagesCount ? 'bg-gray-300 opacity-50 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'}`}
+                                >
+                                    Next →
+                                </Button>
+                            </div>
+                            <span className="text-xs text-gray-500 font-medium tracking-wide">
+                                Page <span className="text-black font-bold">{page}</span> of <span className="text-black font-bold">{pagesCount || 1}</span>
+                            </span>
                         </div>
                     )}
                 </Card>

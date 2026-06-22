@@ -152,7 +152,7 @@ const TenantBookingsPage = () => {
                   Your isolated tenant history log contains zero entries. Any successful bookings you submit will automatically bind here.
                 </p>
               </div>
-              <Link href="/properties" className="inline-block pt-2">
+              <Link href="/allproperties" className="inline-block pt-2">
                 <Button className="bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl px-6 py-4 shadow-md shadow-orange-500/10 hover:bg-orange-600 transition-all">
                   Discover Available Spaces
                 </Button>

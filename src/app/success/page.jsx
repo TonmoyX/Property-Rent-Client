@@ -60,7 +60,7 @@ export default async function Success({ searchParams }) {
         </div>
 
         {/* Action Route Return Navigation Interfaces */}
-        <div className="pt-2">
+        <div className="pt-2 ">
           {/* Solved: Wrapped with standard Link component without legacyBehavior or custom props */}
           <Link href="/allproperties" className="w-full block">
             <Button className="w-full bg-gray-900 text-white font-bold text-xs uppercase tracking-wider rounded-xl py-5 hover:bg-orange-500 transition-colors shadow-sm">

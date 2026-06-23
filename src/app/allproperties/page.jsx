@@ -33,6 +33,7 @@ export default function AllPropertiesPage() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
+        
         const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || '';
         const response = await fetch(`${baseUri}/getPropertiesData`);
         

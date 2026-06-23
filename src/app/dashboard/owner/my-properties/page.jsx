@@ -133,12 +133,16 @@ export default function OwnerPropertiesPage() {
 
     // Delete handling logic
     const handleDelete = async (propertyId) => {
+        // const {data: tokenData} = authClient.token();
         if (!confirm('Are you sure you want to delete this property permanently?')) return;
         
         try {
             const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || '';
             const response = await fetch(`${baseUri}/getPropertiesData/${propertyId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                // headers:{
+                //     authorization : `Bearer ${tokenData?.token}`
+                // }
             });
 
             if (!response.ok) throw new Error('Failed to complete delete request');

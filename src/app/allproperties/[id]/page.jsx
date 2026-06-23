@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from 'next/image';
 import { authClient } from '@/lib/auth-client';
 
+
 export default function PropertyDetailsPage() {
   const { id } = useParams();
   const formRef = useRef(null); // Reference to programmatically clear checkout forms
@@ -21,9 +22,9 @@ export default function PropertyDetailsPage() {
   // User Authentication Stream
   const userData = authClient.useSession();
   const user = userData?.data?.user;
-
   // Orchestrate dynamic database allocation logging prior to Stripe redirect handover
   const bookingHandle = async (e) => {
+    const {data : tokenData} = await authClient.token()
     e.preventDefault();
     if (!property) return;
 
@@ -39,7 +40,8 @@ export default function PropertyDetailsPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/addBookings`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          authorization:`Bearer ${tokenData?.token}`
         },
         body: JSON.stringify({
           propertyId: id,
@@ -76,7 +78,6 @@ export default function PropertyDetailsPage() {
         const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || '';
         const response = await fetch(`${baseUri}/getPropertiesData`);
         const contentType = response.headers.get("content-type");
-
         if (contentType && contentType.includes("application/json")) {
           const data = await response.json();
           const listings = Array.isArray(data) ? data : data.properties || [];

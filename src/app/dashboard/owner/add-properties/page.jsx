@@ -73,6 +73,7 @@ export default function AddPropertiesPage() {
   };
 
   const handleSubmit = async (e) => {
+    // const {data : tokenData} = await authClient.token()
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -128,6 +129,7 @@ export default function AddPropertiesPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // authorization: `Bearer ${tokenData?.token}`
         },
         body: JSON.stringify(propertyPayload),
       });

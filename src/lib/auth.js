@@ -29,6 +29,7 @@
 import { betterAuth } from "better-auth";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { jwt } from "better-auth/plugins"
 
 // 1. Ensure the client initialization fallback exists to avoid undefined errors during build
 const url = process.env.PropRentClient_URL || "mongodb://localhost:27017/PropRentClient";
@@ -60,5 +61,13 @@ export const auth = betterAuth({
         input: true 
       }
     }
-  }
+  },
+  session:{
+    cookieCache: {
+      enabled:true, strategy:'jwt', maxAge: 60*24*60*60,
+    }
+  },
+  plugins:[
+    jwt(),
+  ]
 });

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Card, InputGroup, Button } from "@heroui/react";
 import { motion } from "framer-motion";
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; 
+import { redirect, useRouter } from 'next/navigation'; 
 import { authClient } from '@/lib/auth-client';
 
 // Clean, precise SVG Google Icon
@@ -49,9 +49,13 @@ const SignUpPage = () => {
         }
     };
 
-    const handleGoogleSignUp = () => {
-        console.log("Redirecting to Google OAuth Sign Up with role: ", role);
-    };
+   const handleGoogleSignUp = async () => {
+        const data = await authClient.signIn.social({
+            provider: "google",
+        });
+        redirect(`/`, RedirectType.push)
+        console.log(data, error)
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 select-none">

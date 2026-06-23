@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Card, InputGroup, Button } from "@heroui/react";
 import { motion } from "framer-motion";
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Added missing router dependency
+import { redirect, useRouter } from 'next/navigation'; // Added missing router dependency
 import { authClient } from '@/lib/auth-client';
 
 // Clean, precise SVG Google Icon
@@ -43,9 +43,12 @@ const LoginPage = () => {
         }
     };
 
-    const handleGoogleLogin = () => {
-        console.log("Redirecting to Google OAuth...");
-    };
+     const handleGoogleLogin = async () => {
+        const data = await authClient.signIn.social({
+            provider: "google",
+        });
+        redirect(`/`, RedirectType.push)
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 select-none">

@@ -41,7 +41,12 @@ export const auth = betterAuth({
   },
   database: mongodbAdapter(db, {
     client,
-  }),
+  }),socialProviders: {
+        google: { 
+            clientId: process.env.GOOGLE_CLIENT_ID, 
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET 
+        }, 
+    },
   // 2. Map the custom fields correctly inside advanced configuration
   advanced: {
     generateAndSaveSchema: true, // Auto-creates required collections & unique indexes

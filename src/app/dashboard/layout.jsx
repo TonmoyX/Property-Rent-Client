@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }) {
         { label: 'Overview', href: '/dashboard/admin', icon: '📊' },
         { label: 'Users', href: '/dashboard/admin/users', icon: '👥' },
         { label: 'Properties', href: '/dashboard/admin/properties', icon: '🏢' },
-        { label: 'Bookings', href: '/dashboard/admin/bookings', icon: '📅' },
+        // { label: 'Bookings', href: '/dashboard/admin/bookings', icon: '📅' },
         { label: 'Profile', href: '/dashboard/admin/profile', icon: '👤' },
     ];
 

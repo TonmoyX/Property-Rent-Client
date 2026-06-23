@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { Card, Spinner } from "@heroui/react";
 import { authClient } from '@/lib/auth-client';

@@ -307,43 +307,41 @@ export default function AdminUsersPage() {
                                 Page <span className="text-slate-900 font-extrabold">{page}</span> of <span className="text-slate-900 font-extrabold">{pagesCount || 1}</span>
                             </p>
                             
-                            {/* Next / Previous Control Deck */}
-                            {pagesCount > 1 && (
-                                <div className="flex items-center gap-3 order-1 sm:order-2">
-                                    <Button
-                                        size="sm"
-                                        variant="flat"
-                                        className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl shadow-sm h-9 px-3 text-xs"
-                                        isDisabled={page === 1}
-                                        onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                                    >
-                                        ← Previous
-                                    </Button>
-                                    
-                                    <Pagination
-                                        isCompact
-                                        radius="xl"
-                                        color="warning"
-                                        page={page}
-                                        total={pagesCount}
-                                        onChange={(newPage) => setPage(newPage)}
-                                        classNames={{
-                                            cursor: "bg-amber-500 text-white font-bold rounded-xl shadow-sm",
-                                            item: "text-slate-600 rounded-xl bg-white border border-slate-200/60 hover:bg-slate-100/80 transition-colors"
-                                        }}
-                                    />
+                            {/* Next / Previous Control Deck (Always visible when items exist) */}
+                            <div className="flex items-center gap-3 order-1 sm:order-2">
+                                <Button
+                                    size="sm"
+                                    variant="flat"
+                                    className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl shadow-sm h-9 px-3 text-xs"
+                                    isDisabled={page === 1}
+                                    onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                                >
+                                    ← Previous
+                                </Button>
+                                
+                                <Pagination
+                                    radius="xl"
+                                    size="sm"
+                                    color="warning"
+                                    page={page}
+                                    total={pagesCount || 1}
+                                    onChange={(newPage) => setPage(newPage)}
+                                    className={{
+                                        cursor: "bg-amber-500 text-white font-bold rounded-xl shadow-sm",
+                                        item: "text-slate-600 rounded-xl bg-white border border-slate-200/60 hover:bg-slate-100/80 transition-colors"
+                                    }}
+                                />
 
-                                    <Button
-                                        size="sm"
-                                        variant="flat"
-                                        className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl shadow-sm h-9 px-3 text-xs"
-                                        isDisabled={page === pagesCount}
-                                        onClick={() => setPage((prev) => Math.min(prev + 1, pagesCount))}
-                                    >
-                                        Next →
-                                    </Button>
-                                </div>
-                            )}
+                                <Button
+                                    size="sm"
+                                    variant="flat"
+                                    className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl shadow-sm h-9 px-3 text-xs"
+                                    isDisabled={page === pagesCount || pagesCount <= 1}
+                                    onClick={() => setPage((prev) => Math.min(prev + 1, pagesCount))}
+                                >
+                                    Next →
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </Card>

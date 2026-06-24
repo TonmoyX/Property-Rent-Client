@@ -9,7 +9,6 @@ const RecentProp = async () => {
   try {
     // 1. Fetch live data parameters from backend context layer
     const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/getPropertiesData`, {
-        cache:'no-store',
       next: { revalidate: 60 }, // Revalidate every 60 seconds to keep dynamic yet performant
     });
 

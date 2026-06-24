@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Card, InputGroup, Button } from "@heroui/react";
 import { motion } from "framer-motion";
 import Link from 'next/link';
-import { redirect, useRouter } from 'next/navigation'; 
+import { redirect, RedirectType, useRouter } from 'next/navigation'; 
 import { authClient } from '@/lib/auth-client';
 
 // Clean, precise SVG Google Icon

@@ -1,4 +1,4 @@
-'use client';
+'use client'
 import React, { useState } from 'react';
 import { Button, Spinner } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";

@@ -35,14 +35,14 @@ const BannerSection = () => {
     const propertyTypes = [
         { id: "apartment", label: "Apartment" },
         { id: "house", label: "House" },
-        { id: "condo", label: "Condo" }
+        // { id: "condo", label: "Condo" }
     ];
 
     // Prefetch database payload synchronously to verify values instantly on execution
     useEffect(() => {
         const prefetchPropertiesCollection = async () => {
             try {
-                const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || 'http://localhost:5000';
+                const baseUri = process.env.NEXT_PUBLIC_SERVER_URI || '';
                 const response = await fetch(`${baseUri}/getPropertiesData`);
                 if (response.ok) {
                     const data = await response.json();

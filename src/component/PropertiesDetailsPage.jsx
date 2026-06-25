@@ -5,14 +5,17 @@ import { Card, Button, Spinner, Chip, Avatar } from "@heroui/react";
 import Link from "next/link";
 import Image from 'next/image';
 import { authClient } from '@/lib/auth-client';
-
+import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
 
 export default function PropertyDetailsPage() {
   const { id } = useParams();
-  const formRef = useRef(null); // Reference to programmatically clear checkout forms
+  const formRef = useRef(null); 
   const [property, setProperty] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
+  const [isFavLoading, setIsFavLoading] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [comments, setComments] = useState([
     { id: 1, user: "Tahsin Ahmed", avatar: "", date: "2 hours ago", text: "Incredible location! The natural light in the living room is amazing." },
     { id: 2, user: "Anika Rahman", avatar: "", date: "1 day ago", text: "Very responsive landlord. The place looks exactly like the photos." }
@@ -22,13 +25,63 @@ export default function PropertyDetailsPage() {
   // User Authentication Stream
   const userData = authClient.useSession();
   const user = userData?.data?.user;
+
+  // Handle Save to Favorites Integration
+  const handleSaveToFavorites = async () => {
+    if (!user) {
+      alert("Authentication payload missing. Please log in to save properties.");
+      return;
+    }
+    if (!property) return;
+
+    setIsFavLoading(true);
+    try {
+      const { data: tokenData } = await authClient.token();
+      const serverUri = process.env.NEXT_PUBLIC_SERVER_URI;
+
+      if (!serverUri) {
+        throw new Error("NEXT_PUBLIC_SERVER_URI environment variable is missing in .env.local");
+      }
+      
+      const res = await fetch(`${serverUri}/addUserFav`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // authorization: `Bearer ${tokenData?.token}` // Matches your exact working booking token layout
+        },
+        body: JSON.stringify({
+          propertyId: id,
+          title: property.title,
+          rent: property.rent,
+          location: property.location,
+          image: property.images?.[0] || "",
+          userEmail: user.email,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      if (!res.ok) {
+        // Extract exact server error details to show you why it fails
+        const errorText = await res.text();
+        throw new Error(`Server responded with status ${res.status}: ${errorText}`);
+      }
+
+      setIsSaved(true);
+      toast.success("Property successfully added to your favorites!");
+    } catch (error) {
+      console.error("Error committing to favorites ledger:", error);
+      alert(`Failed to save favorite: ${error.message}`);
+    } finally {
+      setIsFavLoading(false);
+    }
+  };
+
   // Orchestrate dynamic database allocation logging prior to Stripe redirect handover
   const bookingHandle = async (e) => {
-    const {data : tokenData} = await authClient.token()
+    const { data: tokenData } = await authClient.token();
     e.preventDefault();
     if (!property) return;
 
-    // Guard Clause: Prevent anonymous booking if required by your platform ecosystem
     if (!user) {
       alert("Authentication payload missing. Please log in before booking.");
       return;
@@ -36,12 +89,12 @@ export default function PropertyDetailsPage() {
     
     setIsBookingLoading(true);
     try {
-      // 1. Commit listing specifics alongside active user details to database ledger records
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URI}/addBookings`, {
+      const serverUri = process.env.NEXT_PUBLIC_SERVER_URI;
+      const res = await fetch(`${serverUri}/addBookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          authorization:`Bearer ${tokenData?.token}`
+          authorization: `Bearer ${tokenData?.token}`
         },
         body: JSON.stringify({
           propertyId: id,
@@ -50,7 +103,6 @@ export default function PropertyDetailsPage() {
           rentType: property.rentType,
           location: property.location,
           timestamp: new Date().toISOString(),
-          // Injected User Association Context:
           userEmail: user.email,
           userId: user.id || user._id, 
           userName: user.name
@@ -61,7 +113,6 @@ export default function PropertyDetailsPage() {
         throw new Error("Local registry database failed allocation logging.");
       }
 
-      // 2. Safely trigger the native checkout stream form submit rule
       if (formRef.current) {
         formRef.current.submit();
       }
@@ -98,7 +149,6 @@ export default function PropertyDetailsPage() {
     e.preventDefault();
     if (!newComment.trim()) return;
 
-    // Use current session data name for real-time validation commenting if user is logged in
     const reviewerName = user?.name || "Current User";
 
     setComments([
@@ -184,9 +234,33 @@ export default function PropertyDetailsPage() {
                 {/* Right Side Content Metadata Column */}
                 <div className="flex-1 w-full space-y-6">
                   <div className="space-y-2">
-                    <div className="text-xs text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1">
-                      📍 {property.location || "Undefined Spatial Vector Address"}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="text-xs text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1">
+                        📍 {property.location || "Undefined Spatial Vector Address"}
+                      </div>
+                      
+                      {/* Interactive Heart Button Implementation via Framer Motion */}
+                      <motion.button
+                        whileTap={{ scale: 0.85 }}
+                        whileHover={{ scale: 1.05 }}
+                        onClick={handleSaveToFavorites}
+                        disabled={isFavLoading || isSaved}
+                        className={`p-2 rounded-xl border flex items-center justify-center transition-all ${
+                          isSaved 
+                            ? "bg-red-50 border-red-200 text-red-500" 
+                            : "bg-gray-50 border-gray-200 text-gray-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100"
+                        }`}
+                      >
+                        {isFavLoading ? (
+                          <Spinner size="sm" color="danger" />
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill={isSaved ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                          </svg>
+                        )}
+                      </motion.button>
                     </div>
+
                     <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight leading-tight">
                       {property.title}
                     </h1>
@@ -259,7 +333,6 @@ export default function PropertyDetailsPage() {
                 <form ref={formRef} action="/api/checkout_sessions" method="POST">
                   <input type="hidden" name="propertyName" value={property.title} />
                   <input type="hidden" name="propertyPrice" value={property.rent} />
-                  {/* Passing user context downstream to the Stripe checkout processing route */}
                   <input type="hidden" name="userEmail" value={user?.email || ""} />
                   
                   <Button 

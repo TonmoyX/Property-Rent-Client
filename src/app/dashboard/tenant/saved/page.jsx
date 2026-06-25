@@ -136,7 +136,7 @@ export default function TenantFavoritesTablePage() {
                 You haven't committed any micro real estate property listings to your tracking ledger database context yet.
               </p>
             </div>
-            <Link href="/properties" className="inline-block">
+            <Link href="/allproperties" className="inline-block">
               <Button className="bg-gray-900 text-white font-bold rounded-xl text-xs uppercase tracking-wider px-6 py-4 hover:bg-orange-500 transition-colors">
                 Explore Available Grid Listings
               </Button>

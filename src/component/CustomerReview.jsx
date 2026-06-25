@@ -32,7 +32,7 @@ const CustomerReview = () => {
         {
             id: 2,
             name: "Alex Rivera",
-            role: "Property Owner",
+            role: "Verified Tenant",
             avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704e",
             rating: 5,
             comment: "As a landlord, managing background checks and security deposits used to be a nightmare. This dashboard simplifies everything into a single, seamless platform."
@@ -48,7 +48,7 @@ const CustomerReview = () => {
         {
             id: 4,
             name: "Marcus Chen",
-            role: "Real Estate Agent",
+            role: "Verified Tenant",
             avatar: "https://i.pravatar.cc/150?u=a032581f4e29026704a",
             rating: 5,
             comment: "The UI design is modern, lightning-fast, and highly intuitive for clients. My listing engagement metrics doubled within the first month of migrating over."
